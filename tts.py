@@ -18,6 +18,7 @@ class TTS:
         self.speaker_prompt_text_transcription_bopomo = get_bopomofo_rare(self.speaker_prompt_text_transcription, self.g2pw_converter)
 
     def generate(self, generate_text: str, output_path: str):
+        
         # 生成文字
         content_to_synthesize = self.model.frontend.text_normalize_new(
             generate_text,

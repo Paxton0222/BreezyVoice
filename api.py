@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from io import BytesIO
 
 import torchaudio
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Body, Form
 from fastapi.responses import StreamingResponse
 from g2pw import G2PWConverter
 from pydantic import BaseModel, Field
@@ -24,11 +24,13 @@ class Settings(BaseSettings):
         description="Specifies the model used for speech synthesis.",
     )
     speaker_prompt_audio_path: str = Field(
-        default="./data/example.wav",
+        default="./data/佑希-新聞播報-ai.wav",
+        # default="./data/laravel.wav",
         description="Specifies the path to the prompt speech audio file of the speaker.",
     )
     speaker_prompt_text_transcription: str = Field(
-        default="在密碼學中，加密是將明文資訊改變為難以讀取的密文內容，使之不可讀的方法。只有擁有解密方法的對象，經由解密過程，才能將密文還原為正常可讀的內容。",
+        default="以下是今天的新聞播報，美國蘋果公司在今天發表了新的 iPhone 17 系列，分別有 iPhone 17、iPhone 17 Plus、iPhone 17 Pro 和 iPhone 17 Pro Max，此次發表會還發表了全新升級的 AI 功能，讓 iPhone 17 系列有了比 siri 更加強大且實用的 AI 能力。",
+        # default="今天我們從使用者發出請求開始，沿著 Laravel 的請求生命週期，一路走訪專案結構：從路由，Middleware，Controller，到商業邏輯，資料層與視圖，幫你建立一張清晰的心智地圖。",
         description="Specifies the transcription of the speaker prompt audio.",
     )
 
@@ -75,7 +77,7 @@ async def get_models(request: Request):
 
 
 @app.post("/audio/speech")
-async def speach_endpoint(request: Request, payload: SpeechRequest):
+async def speach_endpoint(request: Request, input: str = Form(...)):
     # normalization
     speaker_prompt_text_transcription = (
         request.app.state.cosyvoice.frontend.text_normalize_new(
@@ -83,7 +85,7 @@ async def speach_endpoint(request: Request, payload: SpeechRequest):
         )
     )
     content_to_synthesize = request.app.state.cosyvoice.frontend.text_normalize_new(
-        payload.input, split=False
+        input, split=False
     )
     speaker_prompt_text_transcription_bopomo = get_bopomofo_rare(
         speaker_prompt_text_transcription, request.app.state.bopomofo_converter
